@@ -114,8 +114,8 @@ make benchmark
 
 **Test Setup:**
 
-* GPU: NVIDIA RTX 3080 (10GB VRAM)
-* CPU: Intel i7-10700K @ 3.8GHz
+* GPU: Google Colab Tesla T4 / A100 (depends on runtime)
+* CPU: Google Colab CPU (Intel Xeon @ ~2.3GHz)
 * Dataset: 5,712 MRI images
 
 | Metric        | CPU       | GPU       | Speedup   |
@@ -212,7 +212,9 @@ make benchmark
 ## 👨‍💻 Author
 
 Thapat Jirametharat
+
 Term Project – Parallel Computing Course
+
 Kasetsart University
 
 ---
