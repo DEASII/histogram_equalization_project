@@ -1,0 +1,13 @@
+Processing notumor     : [██████████████████████████████] 100% (9.00 it/s)
+Processing glioma      : [██████████████████████████████] 100% (6.96 it/s)
+Processing pituitary   : [██████████████████████████████] 100% (6.84 it/s)
+Processing meningioma  : [██████████████████████████████] 100% (6.72 it/s)
+
+✅ CPU Process ALL DONE in 779.69 seconds
+
+Processing notumor: [██████████████████████████████] 100% (199.38 it/s)
+Processing glioma: [██████████████████████████████] 100% (220.17 it/s)
+Processing pituitary: [██████████████████████████████] 100% (208.14 it/s)
+Processing meningioma: [██████████████████████████████] 100% (223.17 it/s)
+
+✅ GPU Process ALL DONE in 29.46 seconds

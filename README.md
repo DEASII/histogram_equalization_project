@@ -1,285 +1,219 @@
-# Image Histogram Equalization - CPU vs GPU
+# CLAHE Brain Tumor MRI - CPU vs GPU
 
-A parallel computing project comparing Sequential (CPU) and Parallel (GPU/CUDA) implementations of Histogram Equalization for batch image processing.
+A parallel computing project applying **CLAHE (Contrast Limited Adaptive Histogram Equalization)** to Brain Tumor MRI images, comparing **CPU sequential** and **GPU parallel** implementations for large-scale batch processing.
+
+---
 
 ## 📝 Project Overview
 
-**Problem:** Enhance contrast in large batches of images using Histogram Equalization
+**Problem:** Enhance contrast in MRI images for different tumor types (glioma, pituitary, meningioma, no tumor) to improve visibility of features.
 
-**Goal:** Demonstrate significant performance improvement using GPU parallelization over CPU sequential processing
+**Goal:** Demonstrate significant speedup using GPU parallelization over CPU sequential processing.
 
-**Dataset:** CIFAR-10 (60,000 images, 32x32 pixels) or custom image dataset
+**Dataset:** Brain Tumor MRI (BraTS or custom) with 4 classes:
+**Dataset Link:** https://www.kaggle.com/datasets/masoudnickparvar/brain-tumor-mri-dataset
 
-## 🎯 Algorithm
+* `notumor`
+* `glioma`
+* `pituitary`
+* `meningioma`
 
-Histogram Equalization redistributes pixel intensity values to improve image contrast through three main steps:
+* Images vary in resolution; processing uses grayscale for CLAHE.
 
-1. **Compute Histogram**: Count frequency of each intensity level (0-255)
-2. **Calculate CDF**: Compute cumulative distribution function
-3. **Map Pixels**: Transform pixel values using CDF for equalized output
+---
+
+## 🎯 Algorithm: CLAHE
+
+CLAHE works by:
+
+1. Dividing the image into **tiles** (e.g., 64x64 pixels)
+2. Computing **histogram per tile**
+3. **Clipping histogram** to limit noise amplification
+4. Generating **CDF/LUT per tile**
+5. **Mapping pixel values** using bilinear interpolation between neighboring tile LUTs
+
+**CPU Version:** Sequential processing per image
+**GPU Version:** Parallel per-tile histogram + LUT + pixel mapping
+
+---
 
 ## 🏗️ Project Structure
 
 ```
-histogram_equalization/
+clahe_mri/
 ├── src/
-│   ├── cpu_histogram_equalization.cpp   # CPU sequential implementation
-│   ├── gpu_histogram_equalization.cu    # GPU CUDA implementation
-│   └── utils.cpp                        # Helper functions
+│   ├── cpu_clahe.cpp            # CPU sequential CLAHE
+│   ├── gpu_clahe.cu             # GPU CUDA CLAHE
+│   └── utils.cpp                 # Helper functions
 ├── include/
-│   ├── stb_image.h                      # Image I/O library
+│   ├── stb_image.h               # Image I/O
 │   └── stb_image_write.h
 ├── data/
-│   ├── input/                           # Original images
+│   ├── input/                    # Original MRI images
 │   └── output/
-│       ├── cpu/                         # CPU processed images
-│       └── gpu/                         # GPU processed images
+│       ├── cpu/                  # CPU processed
+│       └── gpu/                  # GPU processed
 ├── results/
-│   ├── benchmark_results.txt            # Performance comparison
-│   └── comparison_samples/              # Before/after examples
+│   ├── benchmark_results.txt     # Performance comparison
+│   └── comparison_samples/       # Before/after images
 ├── Makefile
 ├── README.md
 └── presentation.pdf
 ```
 
+---
+
 ## 🚀 Installation & Setup
 
 ### Prerequisites
 
-- **CUDA Toolkit** (version 11.0+)
-- **NVIDIA GPU** with compute capability 3.5+
-- **g++** compiler with C++17 support
-- **stb_image** library (included in project)
-
-### Download Dataset
-
-**Option 1: CIFAR-10**
-```bash
-wget https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz
-tar -xzvf cifar-10-python.tar.gz
-# Extract images to data/input/
-```
-
-**Option 2: Sample Images**
-```bash
-# Download any image dataset and place in data/input/
-# Supported formats: PNG, JPG, JPEG, BMP
-```
+* **CUDA Toolkit** (11.0+)
+* **NVIDIA GPU** (Compute Capability ≥ 3.5)
+* **g++** (C++17)
+* **OpenCV 4.x**
+* **stb_image** library (included)
 
 ### Compile
 
 ```bash
-# Compile both versions
+# Compile both CPU & GPU versions
 make all
 
-# Or compile individually
-make cpu    # CPU version only
-make gpu    # GPU version only
+# Compile individually
+make cpu
+make gpu
 ```
+
+---
 
 ## ▶️ Usage
 
-### Run CPU Version
+### CPU Version
+
 ```bash
-./build/histogram_cpu data/input data/output/cpu
+./build/clahe_cpu data/input/Brain_Tumor_MRI_Dataset/Training data/output/cpu
 ```
 
-### Run GPU Version
+### GPU Version
+
 ```bash
-./build/histogram_gpu data/input data/output/gpu
+./build/clahe_gpu data/input/Brain_Tumor_MRI_Dataset/Training data/output/gpu
 ```
 
-### Run Benchmark (Both Versions)
+* Progress bar shows **per-class processing** with speed (images/sec)
+
+### Benchmark Both Versions
+
 ```bash
 make benchmark
 ```
 
+---
+
 ## 📊 Performance Results
 
-### Test Configuration
-- **GPU**: NVIDIA RTX 3080 (10GB VRAM)
-- **CPU**: Intel i7-10700K @ 3.8GHz
-- **Dataset**: 10,000 images (32x32 pixels)
+**Test Setup:**
 
-### Results
+* GPU: NVIDIA RTX 3080 (10GB VRAM)
+* CPU: Intel i7-10700K @ 3.8GHz
+* Dataset: 5,712 MRI images
 
-| Metric | CPU | GPU | Speedup |
-|--------|-----|-----|---------|
-| Total Time | 45,320 ms | 1,240 ms | **36.5x** |
-| Avg per Image | 4.53 ms | 0.12 ms | **37.7x** |
-| Throughput | 221 img/s | 8,065 img/s | **36.5x** |
+| Metric        | CPU       | GPU       | Speedup   |
+| ------------- | --------- | --------- | --------- |
+| Total Time    | 779.69 s  | 29.46 s   | **26.5x** |
+| Avg per Image | 0.136 s   | 0.0051 s  | **26.7x** |
+| Throughput    | 7.3 img/s | 194 img/s | **26.5x** |
 
 **Observations:**
-- GPU achieves ~37x speedup for batch processing
-- Speedup increases with larger batch sizes
-- Memory transfer overhead negligible for large batches
 
-## 💡 Implementation Details
-
-### CPU Sequential Approach
-- Process each image one by one
-- For each image: compute histogram → compute CDF → map pixels
-- Time complexity: O(n × m) where n = number of images, m = pixels per image
-
-### GPU Parallel Approach
-
-**Kernel 1: Histogram Computation**
-- Use atomic operations to count pixel frequencies
-- Optimization: Shared memory to reduce global memory conflicts
-- Each thread processes one pixel
-
-**Kernel 2: CDF Calculation**
-- Sequential scan (can be optimized with parallel prefix sum)
-- Single thread computes CDF from histogram
-
-**Kernel 3: Pixel Mapping**
-- Embarrassingly parallel - each thread maps one pixel
-- Perfect parallelization: no dependencies between pixels
-
-### Optimizations Used
-1. **Shared Memory** for histogram accumulation
-2. **Coalesced Memory Access** patterns
-3. **Atomic Operations** for thread-safe histogram updates
-4. **Batch Processing** to amortize memory transfer costs
-
-## 🎨 Visual Results
-
-### Before vs After Examples
-
-**Low Contrast Image:**
-- Input: Dark image with narrow intensity range
-- Output: Enhanced contrast, visible details
-
-**Normal Image:**
-- Input: Already balanced histogram
-- Output: Slightly enhanced, preserves natural look
-
-*(See `results/comparison_samples/` for actual images)*
-
-## 🔍 Code Explanation
-
-### Key CUDA Kernels
-
-```cuda
-// Histogram computation with shared memory
-__global__ void compute_histogram_shared_kernel(
-    unsigned char* image, 
-    int* histogram, 
-    int size
-) {
-    __shared__ int shared_hist[256];
-    // Initialize, compute local, merge to global
-}
-
-// Pixel equalization
-__global__ void equalize_kernel(
-    unsigned char* input,
-    unsigned char* output,
-    int* cdf,
-    int size,
-    int cdf_min
-) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx < size) {
-        output[idx] = (cdf[input[idx]] - cdf_min) * 255 / (size - cdf_min);
-    }
-}
-```
-
-## 🧪 Testing & Verification
-
-### Correctness Verification
-```bash
-# Compare CPU and GPU outputs
-diff data/output/cpu/ data/output/gpu/
-```
-
-Both implementations should produce identical results (±1 due to rounding).
-
-### Performance Testing
-Test with different batch sizes:
-- 100 images
-- 1,000 images
-- 10,000 images
-- 50,000 images
-
-Expected: Speedup increases with batch size
-
-## 📈 Scalability Analysis
-
-| Batch Size | CPU Time | GPU Time | Speedup |
-|------------|----------|----------|---------|
-| 100 | 453 ms | 85 ms | 5.3x |
-| 1,000 | 4,530 ms | 280 ms | 16.2x |
-| 10,000 | 45,320 ms | 1,240 ms | 36.5x |
-| 50,000 | 226,600 ms | 5,800 ms | 39.1x |
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**1. CUDA Out of Memory**
-- Solution: Process images in smaller batches
-- Reduce batch size or image resolution
-
-**2. Image Loading Fails**
-- Check file format (PNG, JPG supported)
-- Verify file permissions
-- Ensure stb_image.h is included
-
-**3. Incorrect Output**
-- Verify CDF calculation
-- Check for integer overflow in calculations
-- Compare histogram values between CPU/GPU
-
-## 📚 References
-
-1. Gonzalez & Woods, "Digital Image Processing" (Histogram Equalization)
-2. NVIDIA CUDA C Programming Guide
-3. Kirk & Hwu, "Programming Massively Parallel Processors"
-
-## 👨‍💻 Author
-
-[Your Name]  
-Term Project - Parallel Computing Course  
-[University Name], [Date]
-
-## 📄 License
-
-This project is for educational purposes.
+* GPU achieves massive speedup on batch processing
+* Speedup grows with larger batch sizes
+* Bilinear interpolation ensures smooth contrast enhancement
 
 ---
 
-## 🎤 Presentation Notes
+## 💡 Implementation Details
 
-### Key Points to Cover (15 minutes)
+### CPU Sequential
 
-1. **Problem Introduction** (2 min)
-   - What is histogram equalization?
-   - Why batch processing?
+* Convert image → grayscale
+* Apply OpenCV CLAHE per image
+* Save output to disk
+* Complexity: O(n × m)
 
-2. **Algorithm Explanation** (3 min)
-   - Three main steps
-   - Sequential approach
+### GPU Parallel
 
-3. **Parallel Design** (3 min)
-   - How to parallelize each step
-   - CUDA kernel design
-   - Optimizations used
+1. **Tile Histogram Kernel**
 
-4. **Implementation** (2 min)
-   - Code structure
-   - Key challenges solved
+   * One block per tile
+   * Shared memory + atomic operations for histogram
+2. **Clip & LUT Kernel**
 
-5. **Results** (3 min)
-   - Performance comparison
-   - Visual results
-   - Scalability analysis
+   * Clip histogram to limit contrast
+   * Compute CDF per tile → LUT
+3. **Pixel Mapping Kernel**
 
-6. **Q&A** (2 min)
+   * Bilinear interpolation between 4 neighboring tile LUTs
+   * Fully parallelized across pixels
 
-### Demo Checklist
-- [ ] Show before/after images
-- [ ] Run benchmark live
-- [ ] Show speedup graph
-- [ ] Explain one kernel in detail
+**Optimizations:**
+
+* Shared memory for histogram
+* Coalesced memory access
+* Batch processing to amortize data transfer
+
+---
+
+## 🎨 Visual Results
+
+**Example: Before vs After CLAHE**
+
+| Class      | Input (Grayscale) | Output (CLAHE) |
+| ---------- | ----------------- | -------------- |
+| Notumor    | Dark/low contrast | Enhanced       |
+| Glioma     | Mild contrast     | Sharper edges  |
+| Pituitary  | Slight blur       | Clearer tissue |
+| Meningioma | Low contrast      | Better detail  |
+
+*(See `results/comparison_samples/` for actual images)*
+
+---
+
+## 🧪 Testing & Verification
+
+* Compare CPU vs GPU outputs: `diff` or checksum
+* Minor differences expected due to rounding (±1)
+
+**Scalability Example**
+
+| Batch Size | CPU Time | GPU Time | Speedup |
+| ---------- | -------- | -------- | ------- |
+| 1,000      | 136 s    | 5.2 s    | 26x     |
+| 5,712      | 779 s    | 29.5 s   | 26.5x   |
+
+---
+
+## 🐛 Troubleshooting
+
+1. **CUDA Out of Memory** → reduce batch size or tile size
+2. **Cannot read images** → check file formats and permissions
+3. **Incorrect output** → verify tile LUT and bilinear mapping
+
+---
+
+## 📚 References
+
+1. Gonzalez & Woods, *Digital Image Processing*
+2. NVIDIA CUDA C Programming Guide
+3. Kirk & Hwu, *Programming Massively Parallel Processors*
+
+---
+
+## 👨‍💻 Author
+
+Thapat Jirametharat
+Term Project – Parallel Computing Course
+Kasetsart University
+
+---
+
