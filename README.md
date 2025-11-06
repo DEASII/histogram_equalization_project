@@ -58,7 +58,7 @@ clahe_mri/
 │   ├── benchmark_results.txt     # Performance comparison
 │   └── comparison_samples/       # Before/after images
 ├── Run with google GPU/.         #ผมไม่มี GPU ใช้ colab แทน
-│   ├── CLAHE Notebook.ipynb
+│   ├── CLAHE Notebook.ipynb      #Preview result
 │   └── Colab-Link.txt
 ├── Makefile
 ├── README.md
