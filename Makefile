@@ -1,6 +1,3 @@
-# Makefile for Histogram Equalization Project
-
-# Compiler settings
 NVCC = nvcc
 GCC = g++
 NVCC_FLAGS = -O3 -std=c++11

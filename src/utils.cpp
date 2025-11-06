@@ -1,4 +1,3 @@
-// utils.cpp - Helper functions for loading images and directories
 #include <iostream>
 #include <vector>
 #include <string>
@@ -8,7 +7,6 @@
 namespace fs = std::filesystem;
 using namespace std;
 
-// Load all image paths from directory
 vector<string> load_image_paths(const string& directory) {
     vector<string> image_paths;
     
@@ -18,10 +16,8 @@ vector<string> load_image_paths(const string& directory) {
                 string path = entry.path().string();
                 string ext = entry.path().extension().string();
                 
-                // Convert extension to lowercase
                 transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
                 
-                // Check if it's an image file
                 if (ext == ".png" || ext == ".jpg" || ext == ".jpeg" || 
                     ext == ".bmp" || ext == ".tga") {
                     image_paths.push_back(path);
@@ -36,7 +32,6 @@ vector<string> load_image_paths(const string& directory) {
     return image_paths;
 }
 
-// Create output directory if it doesn't exist
 void create_directory(const string& path) {
     try {
         if (!fs::exists(path)) {
@@ -48,7 +43,6 @@ void create_directory(const string& path) {
     }
 }
 
-// Compare two images (for verification)
 double compare_images(unsigned char* img1, unsigned char* img2, int size) {
     long long diff_sum = 0;
     for (int i = 0; i < size; i++) {
@@ -58,7 +52,6 @@ double compare_images(unsigned char* img1, unsigned char* img2, int size) {
     return (double)diff_sum / size;
 }
 
-// Print histogram statistics
 void print_histogram_stats(int* histogram) {
     cout << "\nHistogram Statistics:" << endl;
     
@@ -78,7 +71,6 @@ void print_histogram_stats(int* histogram) {
     cout << "Count range: [" << min_count << ", " << max_count << "]" << endl;
 }
 
-// Save benchmark results to file
 void save_benchmark(const string& filename, 
                    int num_images,
                    double cpu_time_ms,
@@ -106,25 +98,3 @@ void save_benchmark(const string& filename,
     file.close();
     cout << "\nBenchmark results saved to: " << filename << endl;
 }
-
-/*
-Example usage in main():
-
-vector<string> image_paths = load_image_paths("./input_images");
-create_directory("./output_images");
-
-// Process with CPU
-auto cpu_start = chrono::high_resolution_clock::now();
-process_batch_cpu(image_paths, "./output_images/cpu");
-auto cpu_end = chrono::high_resolution_clock::now();
-double cpu_time = chrono::duration_cast<chrono::milliseconds>(cpu_end - cpu_start).count();
-
-// Process with GPU  
-auto gpu_start = chrono::high_resolution_clock::now();
-process_batch_gpu(image_paths, "./output_images/gpu");
-auto gpu_end = chrono::high_resolution_clock::now();
-double gpu_time = chrono::duration_cast<chrono::milliseconds>(gpu_end - gpu_start).count();
-
-// Save benchmark
-save_benchmark("benchmark_results.txt", image_paths.size(), cpu_time, gpu_time);
-*/
