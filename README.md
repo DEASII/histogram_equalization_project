@@ -11,6 +11,7 @@ A parallel computing project applying **CLAHE (Contrast Limited Adaptive Histogr
 **Goal:** Demonstrate significant speedup using GPU parallelization over CPU sequential processing.
 
 **Dataset:** Brain Tumor MRI (BraTS or custom) with 4 classes:
+
 **Dataset Link:** https://www.kaggle.com/datasets/masoudnickparvar/brain-tumor-mri-dataset
 
 * `notumor`
